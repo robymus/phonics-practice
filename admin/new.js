@@ -47,7 +47,23 @@ function save() {
 	// TODO: redirect to index.html
 }
 
+function loadVoices() {
+	$.ajax({
+		url:"tts-voices.json", // TODO: php
+		dataType: "json"
+	})
+	.done(function(data) {
+		console.log(data);
+	})
+	.fail(function() {
+		error('Error loading voice list');
+		$('#saveButton').hide();
+	})
+}
+
 $('#spinner').hide();
 $('#error').hide();
 
 addNew();
+
+$(document).ready(loadVoices)
