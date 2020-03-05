@@ -63,13 +63,62 @@
     </form>
 
     <div class="row">
+      <div class="col-lg-5 col-sm-10">
+          <hr style="border-top: 1px dashed #8c8b8b;">
+      </div>
+    </div>
+
+    <div class="row" style="font-size: 1.5em">
       <div class="col-lg-1 col-sm-2">
-        <button class="btn btn-primary" type="button" id="saveButton" onclick="save()">Save</button>
+        Voice
+      </div>
+      <div class="col-lg-2 col-sm-4">
+        <div class="form-group">
+          <select class="form-control" id="voice_region" onchange="filterVoices()">
+            <option value="GB">British</option>
+            <option value="US">American</option>
+          </select>
+        </div>
+      </div>
+      <div class="col-lg-2 col-sm-4">
+        <div class="form-group">
+          <select class="form-control" id="voice_gender" onchange="filterVoices()">
+            <option value="female">female</option>
+            <option value="male">male</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="row" style="font-size: 1.5em">
+      <div class="col-lg-1 col-sm-2">
+      </div>
+      <div class="col-lg-4 col-sm-8">
+        <div class="form-group">
+          <select class="form-control" id="voice_id">
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-lg-1 col-sm-2">
+        Password
+      </div>
+      <div class="col-lg-2 col-sm-4">
+        <div class="form-group">
+          <input type="password" class="form-control" id="password">
+        </div>
+      </div>
+      <div class="col-lg-2 col-sm-4">
+        <button class="btn btn-primary btn-block" type="button" id="saveButton" onclick="save()">Save</button>
       </div>
       <div class="col-lg-1 col-sm-2" style="font-size:1.5em" id="spinner">
         <i class="fa fa-spinner fa-spin"></i>
       </div>
-      <div class="col-lg-4 col-sm-10" style="font-size:1.5em" id="error">
+    </div>
+
+    <div class="row">
+      <div class="col-lg-5 col-sm-10" style="font-size:1.5em" id="error">
         <p class="text-danger">
           <i class="fas fa-exclamation-triangle"></i>
           <span id="errortext"></span>
