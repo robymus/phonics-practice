@@ -74,7 +74,7 @@ function checkAudioReady() {
                     82: repeatSlide, // R - repeat
                 }
             });
-        }, 100);
+        }, 500);
     }
     else {
         // try again later
