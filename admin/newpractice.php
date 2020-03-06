@@ -16,8 +16,10 @@
      * @param $voiceID String voice id for generation
      * @return array [true, filename] or [false, errorMessage]
      */
-    function generateSpeech($client, $text, $voiceID) {
-        $fn = "data/generated/${voiceID}-${text}.mp3";
+    function generateSpeech($client, $text, $voiceID, $fn = null) {
+        if ($fn === null) {
+            $fn = "data/generated/${voiceID}-${text}.mp3";
+        }
         $fullfn = "../".$fn;
         // do not generate again, if it exists
         if (file_exists($fullfn) && filesize($fullfn) > 0) {
@@ -80,6 +82,12 @@
                 "word" => $word,
                 "filename" => $fn
             ];
+        }
+
+        // also generate good job, well done UX message
+        list($success, $fn) = generateSpeech($client, "Good job! Well done!", $voiceID, "data/generated/${voiceID}-goodjob.mp3");
+        if (!$success) {
+            reportError($fn);
         }
     } finally {
         $client->close();
