@@ -4,15 +4,15 @@ window.voices = [];
 
 function addNew()
 {
-	let nextID = lastID + 1;
-	let template = $('#row-template').html().replace(/ID/g, nextID);
+	const nextID = lastID + 1;
+	const template = $('#row-template').html().replace(/ID/g, nextID);
 	$('#wordlist').append(template);
 	// remove old plus
 	$('#plus_'+lastID).remove();
 	// remove old enter handler
 	$(document.body).off('keyup');
 	// add new enter handler
-	let nextInput = $('#input_'+nextID);
+	const nextInput = $('#input_'+nextID);
 	$(document.body).on('keyup', nextInput, function(evt) {
 		if (nextInput.val() !== '' && evt.code === "Enter") {
 			window.setTimeout(addNew, 100);
@@ -31,7 +31,7 @@ function error(err) {
 }
 
 function save() {
-	let o = $('#wordlist input')
+	const o = $('#wordlist input')
 		.map(function() {
 			return $(this).val();
 		})
@@ -47,7 +47,7 @@ function save() {
 	$('#error').hide();
 
 	// gather form data
-	let formData = {
+	const formData = {
 		"wordList": o,
 		"voice": {
 			'id': $('#voice_id').val(),
@@ -80,12 +80,12 @@ function save() {
 
 // filter voice_id list based on gender/region, select something
 function filterVoices(selectedId = false) {
-	let select = $('#voice_id');
+	const select = $('#voice_id');
 	if (selectedId === false) {
 		selectedId = select.val();
 	}
-	let gender = $('#voice_gender').val();
-	let region = $('#voice_region').val();
+	const gender = $('#voice_gender').val();
+	const region = $('#voice_region').val();
 	select.empty();
 	$.each(window.voices, function(id, voice) {
 		if (voice['gender'] === gender && voice['region'] === region) {
@@ -102,7 +102,7 @@ function filterVoices(selectedId = false) {
 
 function loadVoices() {
 	$.ajax({
-		url: "tts-voices.json", // TODO: php
+		url: "tts-voices.php",
 		dataType: "json"
 	})
 		.done(function(data) {
