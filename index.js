@@ -27,6 +27,10 @@ function loadLastSession() {
         .done(function(data) {
             // build slides dynamically
             const slides = $('div.slides');
+            const areyoureadyTemplate = $('#areyouready-template').html();
+            slides.append(areyoureadyTemplate
+                .replace(/VOICE_ID/g, data['voice']['id'])
+            );
             const wordTemplate = $('#word-template').html();
             $.each(data['wordList'], function(idx, data) {
                 slides.append(wordTemplate
@@ -39,7 +43,26 @@ function loadLastSession() {
                 .replace(/VOICE_ID/g, data['voice']['id'])
             );
 
-            // and initialize reveal
+            // then just wait for all audio to load, before continuing
+            checkAudioReady();
+
+        })
+        .fail(function() {
+            // redirect to admin interface if nothing here yet
+            window.location.href = "admin/index.html";
+        });
+}
+
+function checkAudioReady() {
+    let allReady = true;
+    $.each($('audio'), function(idx, e) {
+        allReady &= (e.readyState === 4) // HAVE_ENOUGH_DATA
+    });
+    if (allReady) {
+        // all audio elements loaded
+        // -> initialize reveal
+        // also wait a little more, just for good measure
+        setTimeout(function() {
             Reveal.initialize({
                 controlsLayout: "edges",
                 overview: false,
@@ -51,11 +74,12 @@ function loadLastSession() {
                     82: repeatSlide, // R - repeat
                 }
             });
-        })
-        .fail(function() {
-            // redirect to admin interface if nothing here yet
-            window.location.href = "admin/index.html";
-        });
+        }, 100);
+    }
+    else {
+        // try again later
+        setTimeout(checkAudioReady, 100);
+    }
 }
 
 $(document).ready(loadLastSession);

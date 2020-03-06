@@ -84,8 +84,12 @@
             ];
         }
 
-        // also generate good job, well done UX message
+        // also generate UX messages
         list($success, $fn) = generateSpeech($client, "Good job! Well done!", $voiceID, "data/generated/${voiceID}-goodjob.mp3");
+        if (!$success) {
+            reportError($fn);
+        }
+        list($success, $fn) = generateSpeech($client, "Are you ready?", $voiceID, "data/generated/${voiceID}-areyouready.mp3");
         if (!$success) {
             reportError($fn);
         }
