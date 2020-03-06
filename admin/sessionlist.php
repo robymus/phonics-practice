@@ -8,14 +8,14 @@
 
     if (file_exists('../data/lastSession.json')) {
         $lastSession = json_decode(file_get_contents('../data/lastSession.json'), true);
-        $lastSessionDate = $lastSession['data'];
+        $lastSessionDate = $lastSession['date'];
     }
 
     $oldSessions = [];
 
     foreach (glob('../data/session/*.json') as $fn) {
         $session = json_decode(file_get_contents($fn), true);
-        if ($session['data'] !== $lastSessionDate) {
+        if ($session['date'] !== $lastSessionDate) {
             $oldSessions[] = $session;
         }
     }
