@@ -60,9 +60,9 @@ function checkAudioReady() {
     });
     if (allReady) {
         // all audio elements loaded
-        // -> initialize reveal
-        // also wait a little more, just for good measure
+        $('#silence')[0].play();
         setTimeout(function() {
+            $('#wait').remove();
             Reveal.initialize({
                 controlsLayout: "edges",
                 overview: false,
@@ -74,7 +74,7 @@ function checkAudioReady() {
                     82: repeatSlide, // R - repeat
                 }
             });
-        }, 500);
+        }, 1000);
     }
     else {
         // try again later
