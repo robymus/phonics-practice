@@ -16,11 +16,11 @@
 	</head>
 	<body>
 
-		<div class="reveal" id="wait">
-			<h1 style="color:#fff">Please wait..</h1>
+		<div class="reveal pagecenter" id="waitPanel">
+			<div>
+				<h1><a href="#"><span class="key" id="waitButton">WAIT</span></a></h1>
+			</div>
 		</div>
-
-		<audio id="silence" hidden="hidden" src="1-second-of-silence.mp3" type="audio/mpeg"></audio>
 
 		<div class="reveal">
 			<div class="slides">
@@ -35,7 +35,6 @@
 						<span class="key"><i class="fas fa-arrow-right"></i></span> Start
 					</a>
 				</p>
-				<audio src="data/generated/VOICE_ID-areyouready.mp3"></audio>
 			</section>
 		</script>
 
@@ -48,7 +47,7 @@
 					</a>
 				</p>
 				<p>
-					<a href="#" onclick="repeatSlide()">
+					<a href="#" onclick="listenAgain()">
 						<span class="key"><b>Enter</b></span> Listen again
 					</a>
 				</p>
@@ -57,7 +56,6 @@
 						<span class="key"><i class="fas fa-arrow-right"></i></span> Next
 					</a>
 				</p>
-				<audio src="FILENAME"></audio>
 			</section>
 		</script>
 
@@ -69,7 +67,6 @@
 						<span class="key"><i class="fas fa-arrow-left"></i></span> Back
 					</a>
 				</p>
-				<audio src="data/generated/VOICE_ID-goodjob.mp3"></audio>
 			</section>
 		</script>
 

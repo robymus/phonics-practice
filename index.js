@@ -1,22 +1,33 @@
+const audioContext = new AudioContext();
+let audioBuffer = [];
+let audioLoadedCount = 0;
+let audioLoadingError = false;
+let sessionData = {};
+// this is magic: if we use API to jump slides, sometimes there is a slidechange to 0 event send before the real one :)
+let ignoreSlideChangeUntil = null;
+let lastAudioSource = null;
+
 function nextSlide() {
-    const slideNum = Reveal.getIndices()['h'];
+    const slideNum = Reveal.getIndices()['h'] + 1;
+    ignoreSlideChangeUntil = slideNum;
+    playSound(slideNum);
     setTimeout(function() {
-        Reveal.slide(slideNum+1);
-    }, 0);
+        Reveal.slide(slideNum);
+    }, 1);
 }
 
 function prevSlide() {
-    const slideNum = Reveal.getIndices()['h'];
-    setTimeout(function() {
-        Reveal.slide(slideNum-1);
-    }, 0);
-}
-
-function repeatSlide() {
-    const slideNum = Reveal.getIndices()['h'];
+    const slideNum = Reveal.getIndices()['h']-1;
+    ignoreSlideChangeUntil = slideNum;
+    playSound(slideNum);
     setTimeout(function() {
         Reveal.slide(slideNum);
-    }, 0);
+    }, 1);
+}
+
+function listenAgain() {
+    const slideNum = Reveal.getIndices()['h'];
+    playSound(slideNum);
 }
 
 function loadLastSession() {
@@ -25,27 +36,8 @@ function loadLastSession() {
         dataType: "json"
     })
         .done(function(data) {
-            // build slides dynamically
-            const slides = $('div.slides');
-            const areyoureadyTemplate = $('#areyouready-template').html();
-            slides.append(areyoureadyTemplate
-                .replace(/VOICE_ID/g, data['voice']['id'])
-            );
-            const wordTemplate = $('#word-template').html();
-            $.each(data['wordList'], function(idx, data) {
-                slides.append(wordTemplate
-                    .replace(/ID/g, idx+1)
-                    .replace(/FILENAME/, data['filename'])
-                );
-            });
-            const goodjobTemplate = $('#goodjob-template').html();
-            slides.append(goodjobTemplate
-                .replace(/VOICE_ID/g, data['voice']['id'])
-            );
-
-            // then just wait for all audio to load, before continuing
-            checkAudioReady();
-
+            sessionData = data;
+            preloadAudio();
         })
         .fail(function() {
             // redirect to admin interface if nothing here yet
@@ -53,33 +45,121 @@ function loadLastSession() {
         });
 }
 
-function checkAudioReady() {
-    let allReady = true;
-    $.each($('audio'), function(idx, e) {
-        allReady &= (e.readyState === 4) // HAVE_ENOUGH_DATA
+// start up everything, first click was done, all audio is loaded
+function start() {
+    $('#waitPanel').remove();
+
+    // build slides dynamically
+    const slides = $('div.slides');
+    const areyoureadyTemplate = $('#areyouready-template').html();
+    slides.append(areyoureadyTemplate
+        .replace(/VOICE_ID/g, sessionData['voice']['id'])
+    );
+    const wordTemplate = $('#word-template').html();
+    $.each(sessionData['wordList'], function(idx, data) {
+        slides.append(wordTemplate
+            .replace(/ID/g, idx+1)
+        );
     });
-    if (allReady) {
-        // all audio elements loaded
-        $('#silence')[0].play();
-        setTimeout(function() {
-            $('#wait').remove();
-            Reveal.initialize({
-                controlsLayout: "edges",
-                overview: false,
-                autoPlayMedia: true,
-                hash: false,
-                keyboard: {
-                    13: repeatSlide,
-                    65: repeatSlide, // A - again
-                    82: repeatSlide, // R - repeat
-                }
-            });
-        }, 1000);
-    }
-    else {
-        // try again later
-        setTimeout(checkAudioReady, 100);
-    }
+    const goodjobTemplate = $('#goodjob-template').html();
+    slides.append(goodjobTemplate
+        .replace(/VOICE_ID/g, sessionData['voice']['id'])
+    );
+
+    Reveal.initialize({
+        controlsLayout: "edges",
+        overview: false,
+        autoPlayMedia: true,
+        hash: false,
+        viewDistance: Number.MAX_VALUE,
+        keyboard: {
+            13: listenAgain,
+            65: listenAgain, // A - again
+            82: listenAgain, // R - repeat
+        }
+    });
+
+    Reveal.addEventListener('slidechanged', function(p) {
+        const slideNum = p['indexh'];
+        // if ignoring is in effect..
+        if (ignoreSlideChangeUntil != null) {
+            // if we reached the target, stop ignoring
+            if (ignoreSlideChangeUntil === slideNum) {
+                ignoreSlideChangeUntil = null;
+            }
+            return;
+        }
+        playSound(slideNum);
+    });
+
+    // change to first (later changes will be captured above
+    playSound(0);
 }
+
+function playSilence() {
+    const waitButton = $('#waitButton');
+    waitButton.html('...');
+    waitButton.unbind();
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer[0];
+    source.connect(audioContext.destination);
+    source.onended = function() {
+        start();
+    };
+    source.start();
+}
+
+function playSound(idx) {
+    if (lastAudioSource !== null) {
+        lastAudioSource.stop();
+    }
+    lastAudioSource = audioContext.createBufferSource();
+    lastAudioSource.buffer = audioBuffer[idx+1];
+    lastAudioSource.connect(audioContext.destination);
+    lastAudioSource.start();
+}
+
+function preloadAudio() {
+    const waitButton = $('#waitButton');
+
+    let urlList = ['1-second-of-silence.mp3'];
+
+    urlList.push('data/generated/' + sessionData['voice']['id'] + '-areyouready.mp3');
+    $.each(sessionData['wordList'], function(idx, data) {
+        urlList.push(data['filename']);
+    });
+    urlList.push('data/generated/' + sessionData['voice']['id'] + '-goodjob.mp3');
+    $.each(urlList, function(idx, url) {
+        $.ajax({
+            url: url,
+            xhr: function() {
+                const xhrOverride = new XMLHttpRequest();
+                xhrOverride.responseType = "arraybuffer";
+                return xhrOverride;
+            }
+        })
+            .done(function(data) {
+                audioContext.decodeAudioData(data).then(audioData => {
+                    audioBuffer[idx] = audioData;
+                    audioLoadedCount++;
+                    if (audioLoadedCount === urlList.length) {
+                        waitButton.html("START");
+                        waitButton.css('background-color', '#4f4');
+                        waitButton.click(function (evt) {
+                            evt.preventDefault();
+                            playSilence();
+                        })
+                    }
+                });
+            })
+            .fail(function() {
+                audioLoadingError = true;
+                waitButton.html("ERROR :(");
+                waitButton.css('background-color', '#f44');
+            });
+
+    });
+}
+
 
 $(document).ready(loadLastSession);

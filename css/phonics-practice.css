@@ -11,3 +11,8 @@ span.spacekey {
     padding: 0.1em 8em 0.1em 8em;
     border-radius: 0.2em;
 }
+div.pagecenter {
+    align-items: center;
+    display: flex;
+    justify-content: center;
+}
