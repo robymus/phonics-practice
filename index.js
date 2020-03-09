@@ -3,13 +3,10 @@ let audioBuffer = [];
 let audioLoadedCount = 0;
 let audioLoadingError = false;
 let sessionData = {};
-// this is magic: if we use API to jump slides, sometimes there is a slidechange to 0 event send before the real one :)
-let ignoreSlideChangeUntil = null;
 let lastAudioSource = null;
 
 function nextSlide() {
     const slideNum = Reveal.getIndices()['h'] + 1;
-    ignoreSlideChangeUntil = slideNum;
     playSound(slideNum);
     setTimeout(function() {
         Reveal.slide(slideNum);
@@ -18,7 +15,6 @@ function nextSlide() {
 
 function prevSlide() {
     const slideNum = Reveal.getIndices()['h']-1;
-    ignoreSlideChangeUntil = slideNum;
     playSound(slideNum);
     setTimeout(function() {
         Reveal.slide(slideNum);
@@ -81,14 +77,6 @@ function start() {
 
     Reveal.addEventListener('slidechanged', function(p) {
         const slideNum = p['indexh'];
-        // if ignoring is in effect..
-        if (ignoreSlideChangeUntil != null) {
-            // if we reached the target, stop ignoring
-            if (ignoreSlideChangeUntil === slideNum) {
-                ignoreSlideChangeUntil = null;
-            }
-            return;
-        }
         playSound(slideNum);
     });
 
@@ -160,6 +148,5 @@ function preloadAudio() {
 
     });
 }
-
 
 $(document).ready(loadLastSession);
